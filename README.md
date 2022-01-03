@@ -11,8 +11,8 @@ This repository contains Spring Boot web applications vulnerable to [Log4Shell](
 
 ```bash
 cd log4j-2.14.1
-sudo docker build -t vulnerable-app:log4j-2.14.1 .
-sudo docker run -p 8000:8080 --name vulnerable-app-log4j-2.14.1 --rm vulnerable-app:log4j-2.14.1
+sudo docker build -t vulnerable-app-log4shell-2.14.1 .
+sudo docker run -p 8000:8080 --name vulnerable-app-log4shell-2.14.1 --rm vulnerable-app-log4shell-2.14.1
 ```
 
 Trigger the vulnerability using:
@@ -31,8 +31,8 @@ https://www.whitesourcesoftware.com/resources/blog/log4j-vulnerability-cve-2021-
 
 ```bash
 cd log4j-2.15.0
-sudo docker build -t vulnerable-app:log4j-2.15.0 .
-sudo docker run -p 8000:8080 --name vulnerable-app-log4j-2.15.0 --rm vulnerable-app:log4j-2.15.0
+sudo docker build -t vulnerable-app-log4shell-2.15.0 .
+sudo docker run -p 8000:8080 --name vulnerable-app-log4shell-2.15.0 --rm vulnerable-app-log4shell-2.15.0
 ```
 
 Does not work anymore:
